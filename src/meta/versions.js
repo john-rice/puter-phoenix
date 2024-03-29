@@ -18,6 +18,16 @@
  */
 export const SHELL_VERSIONS = [
     {
+        v: '0.2.4',
+        changes: [
+            'more completers for tab-completion',
+            'help updates',
+            '"which" command added',
+            '"date" command added',
+            'improvements when running under node.js',
+        ]
+    },
+    {
         v: '0.2.3',
         changes: [
             '"printf" command added',
