@@ -16,15 +16,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { Context } from "../../context/context.js";
-import { CommandCompleter } from "../../puter-shell/completers/command_completer.js";
-import { FileCompleter } from "../../puter-shell/completers/file_completer.js";
+import { Context } from '../../context/context.js';
+import { CommandCompleter } from '../../puter-shell/completers/command_completer.js';
+import { FileCompleter } from '../../puter-shell/completers/file_completer.js';
 import { OptionCompleter } from '../../puter-shell/completers/option_completer.js';
-import { Uint8List } from "../../util/bytes.js";
-import { StatefulProcessorBuilder } from "../../util/statemachine.js";
-import { ANSIContext } from "../ANSIContext.js";
-import { readline_comprehend } from "./rl_comprehend.js";
-import { CSI_HANDLERS } from "./rl_csi_handlers.js";
+import { Uint8List } from '../../util/bytes.js';
+import { StatefulProcessorBuilder } from '../../util/statemachine.js';
+import { ANSIContext } from '../ANSIContext.js';
+import { readline_comprehend } from './rl_comprehend.js';
+import { CSI_HANDLERS } from './rl_csi_handlers.js';
+import { HistoryManager } from './history.js';
 
 const decoder = new TextDecoder();
 
@@ -321,51 +322,6 @@ const ReadlineProcessorBuilder = builder => builder
 const ReadlineProcessor = ReadlineProcessorBuilder(
     new StatefulProcessorBuilder()
 );
-
-class HistoryManager {
-    constructor () {
-        this.items = [];
-        this.index_ = 0;
-        this.listeners_ = {};
-    }
-
-    log (...a) {
-        // TODO: proper logging and verbosity config
-        // console.log('[HistoryManager]', ...a);
-    }
-
-    get index () {
-        return this.index_;
-    }
-
-    set index (v) {
-        this.log('setting index', v);
-        this.index_ = v;
-    }
-
-    get () {
-        return this.items[this.index];
-    }
-
-    save (data, { opt_debug } = {}) {
-        this.log('saving', data, 'at', this.index,
-            ...(opt_debug ? ['from', opt_debug] : []));
-        this.items[this.index] = data;
-
-        if ( this.listeners_.hasOwnProperty('add') ) {
-            for ( const listener of this.listeners_.add ) {
-                listener(data);
-            }
-        }
-    }
-
-    on (topic, listener) {
-        if ( ! this.listeners_.hasOwnProperty(topic) ) {
-            this.listeners_[topic] = [];
-        }
-        this.listeners_[topic].push(listener);
-    }
-}
 
 class Readline {
     constructor (params) {
