@@ -41,6 +41,7 @@ export class HistoryManager {
         return this.items[this.index];
     }
 
+    // Save, overwriting the current history item
     save(data, { opt_debug } = {}) {
         this.log('saving', data, 'at', this.index,
             ...(opt_debug ? [ 'from', opt_debug ] : []));
@@ -51,6 +52,20 @@ export class HistoryManager {
                 listener(data);
             }
         }
+    }
+
+    append(data) {
+        if (
+            this.items.length !== 0 &&
+            this.index !== this.items.length
+        ) {
+            this.log('POP');
+            // remove last item
+            this.items.pop();
+        }
+        this.index = this.items.length;
+        this.save(data, { opt_debug: 'append' });
+        this.index++;
     }
 
     on(topic, listener) {

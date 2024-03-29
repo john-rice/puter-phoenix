@@ -346,21 +346,8 @@ class Readline {
             commandCtx,
         });
 
-        // TODO: this condition, redundant to the one in ANSIShell,
-        // is an indication that HistoryManager
         if ( result.trim() !== '' ) {
-            // console.log('[HistoryManager] len?', this.history.items.length);
-            if (
-                this.history.items.length !== 0 &&
-                this.history.index !== this.history.items.length
-            ) {
-                // console.log('[HistoryManager] POP');
-                // remove last item
-                this.history.items.pop();
-            }
-            this.history.index = this.history.items.length;
-            this.history.save(result, { opt_debug: 'post-readline' });
-            this.history.index++;
+            this.history.append(result);
         }
 
         return result;
