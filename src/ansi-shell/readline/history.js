@@ -17,15 +17,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 export class HistoryManager {
-    constructor() {
+    constructor({ enableLogging = false } = {}) {
         this.items = [];
         this.index_ = 0;
         this.listeners_ = {};
+        this.enableLogging_ = enableLogging;
     }
 
     log(...a) {
-        // TODO: proper logging and verbosity config
-        // console.log('[HistoryManager]', ...a);
+        // TODO: Command line option for configuring logging
+        if ( this.enableLogging_ ) {
+            console.log('[HistoryManager]', ...a);
+        }
     }
 
     get index() {
