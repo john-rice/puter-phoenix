@@ -29,10 +29,6 @@ export class NodeStdioPTT {
         process.stdin.on('data', chunk => {
             const input = new Uint8Array(chunk);
             readController.enqueue(input);
-            if (input.length === 1 && (input[0] === signals.SIGINT || input[0] === signals.SIGQUIT)) {
-                process.exit(1);
-                return;
-            }
         });
 
         this.out = writestream_node_to_web(process.stdout);
