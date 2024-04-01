@@ -77,10 +77,18 @@ export default {
     args: {
         $: 'simple-parser',
         allowPositionals: true,
+        options: {
+            utc: {
+                description: 'Operate in UTC instead of the local timezone',
+                type: 'boolean',
+                short: 'u',
+                default: false,
+            }
+        }
     },
     execute: async ctx => {
         const { out, err } = ctx.externs;
-        const { positionals } = ctx.locals;
+        const { positionals, values } = ctx.locals;
 
         if ( positionals.length > 1 ) {
             await err.write('date: Too many arguments\n');
@@ -98,6 +106,7 @@ export default {
         // TODO: Should we use the server time instead? Maybe put that behind an option.
         const date = new Date();
         const locale = 'en-US'; // TODO: POSIX: Pull this from the user's settings.
+        const timeZone = values.utc ? 'UTC' : undefined;
 
         let output = '';
         for (let i = 0; i < format.length; i++) {
@@ -107,13 +116,13 @@ export default {
                 switch (char) {
                     // "Locale's abbreviated weekday name."
                     case 'a': {
-                        output += date.toLocaleDateString(locale, { weekday: 'short' });
+                        output += date.toLocaleDateString(locale, { timeZone: timeZone, weekday: 'short' });
                         break;
                     }
 
                     // "Locale's full weekday name."
                     case 'A': {
-                        output += date.toLocaleDateString(locale, { weekday: 'long' });
+                        output += date.toLocaleDateString(locale, { timeZone: timeZone, weekday: 'long' });
                         break;
                     }
 
@@ -121,19 +130,19 @@ export default {
                     case 'b':
                     // "A synonym for %b."
                     case 'h': {
-                        output += date.toLocaleDateString(locale, { month: 'short' });
+                        output += date.toLocaleDateString(locale, { timeZone: timeZone, month: 'short' });
                         break;
                     }
 
                     // "Locale's full month name."
                     case 'B': {
-                        output += date.toLocaleDateString(locale, { month: 'long' });
+                        output += date.toLocaleDateString(locale, { timeZone: timeZone, month: 'long' });
                         break;
                     }
 
                     // "Locale's appropriate date and time representation."
                     case 'c':  {
-                        output += date.toLocaleString(locale);
+                        output += date.toLocaleString(locale, { timeZone: timeZone });
                         break;
                     }
 
@@ -263,13 +272,13 @@ export default {
 
                     // "Locale's appropriate date representation."
                     case 'x': {
-                        output += date.toLocaleDateString(locale);
+                        output += date.toLocaleDateString(locale, { timeZone: timeZone });
                         break;
                     }
 
                     // "Locale's appropriate time representation."
                     case 'X': {
-                        output += date.toLocaleTimeString(locale);
+                        output += date.toLocaleTimeString(locale, { timeZone: timeZone });
                         break;
                     }
 
@@ -287,7 +296,7 @@ export default {
 
                     // "Timezone name, or no characters if no timezone is determinable."
                     case 'Z': {
-                        output += date.toLocaleDateString(locale, { timeZoneName: 'short' });
+                        output += date.toLocaleDateString(locale, { timeZone: timeZone, timeZoneName: 'short' });
                         break;
                     }
 
