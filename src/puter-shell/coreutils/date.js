@@ -296,7 +296,8 @@ export default {
 
                     // "Timezone name, or no characters if no timezone is determinable."
                     case 'Z': {
-                        output += date.toLocaleDateString(locale, { timeZone: timeZone, timeZoneName: 'short' });
+                        const parts = new Intl.DateTimeFormat(locale, { timeZone: timeZone, timeZoneName: 'short' }).formatToParts(date);
+                        output += parts.find(it => it.type === 'timeZoneName').value;
                         break;
                     }
 
