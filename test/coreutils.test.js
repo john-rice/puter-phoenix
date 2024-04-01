@@ -17,6 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { runBasenameTests } from "./coreutils/basename.js";
+import { runDateTests } from "./coreutils/date.js";
 import { runDirnameTests } from "./coreutils/dirname.js";
 import { runEchoTests } from "./coreutils/echo.js";
 import { runEnvTests } from "./coreutils/env.js";
@@ -32,6 +33,7 @@ import { runWcTests } from "./coreutils/wc.js";
 
 describe('coreutils', function () {
     runBasenameTests();
+    runDateTests();
     runDirnameTests();
     runEchoTests();
     runEnvTests();
