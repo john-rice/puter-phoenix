@@ -51,19 +51,28 @@ describe('wrapText', () => {
             width: 0,
             output: ['Well, hello friends!'],
         },
+        {
+            description: 'should maintain existing newlines',
+            input: 'Well\nhello\n\nfriends!',
+            width: 20,
+            output: ['Well', 'hello', '', 'friends!'],
+        },
+        {
+            description: 'should maintain indentation after newlines',
+            input: 'Well\n      hello\n\nfriends!',
+            width: 20,
+            output: ['Well', '      hello', '', 'friends!'],
+        },
     ];
     for (const { description, input, width, output } of testCases) {
         it (description, () => {
             const result = wrapText(input, width);
             for (const line of result) {
                 if (typeof width === 'number' && width > 0) {
-                    assert.ok(line.length <= width, `Line is too long: '${line}`);
+                    assert.ok(line.length <= width, `Line is too long: '${line}'`);
                 }
             }
-            assert.equal(result.length, output.length, 'Wrong number of lines');
-            for (const i in result) {
-                assert.equal(result[i], output[i], `Line ${i} doesn't match: expected '${output[i]}', got '${result[i]}'`);
-            }
+            assert.equal('|' + result.join('|\n|') + '|', '|' + output.join('|\n|') + '|');
         });
     }
 })

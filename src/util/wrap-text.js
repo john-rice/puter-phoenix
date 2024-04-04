@@ -19,14 +19,16 @@
 // TODO: Detect ANSI escape sequences in the text and treat them as 0 width?
 // TODO: Ensure this works with multi-byte characters (UTF-8)
 export const wrapText = (text, width) => {
+    const whitespaceChars = ' \t'.split('');
+    const isWhitespace = c => {
+        return whitespaceChars.includes(c);
+    };
+
     // If width was invalid, just return the original text as a failsafe.
     if (typeof width !== 'number' || width < 1)
         return [text];
 
     const lines = [];
-    // This reduces all whitespace to single space characters. Is that a problem?
-    const words = text.split(/\s+/);
-
     let currentLine = '';
     const splitWordIfTooLong = (word) => {
         while (word.length > width) {
@@ -37,20 +39,51 @@ export const wrapText = (text, width) => {
         currentLine = word;
     };
 
-    for (let word of words) {
-        if (currentLine.length === 0) {
-            splitWordIfTooLong(word);
+    for (let i = 0; i < text.length; i++) {
+        const char = text.charAt(i);
+        // Handle special characters
+        if (char === '\n') {
+            lines.push(currentLine.trimEnd());
+            currentLine = '';
+            // Don't skip whitespace after a newline, to allow for indentation.
             continue;
         }
-        if ((currentLine.length + 1 + word.length) > width) {
-            // Next line
-            lines.push(currentLine);
-            splitWordIfTooLong(word);
+        // TODO: Handle \t?
+        if (/\S/.test(char)) {
+            // Grab next word
+            let word = char;
+            while ((i+1) < text.length && /\S/.test(text[i + 1])) {
+                word += text[i+1];
+                i++;
+            }
+            if (currentLine.length === 0) {
+                splitWordIfTooLong(word);
+                continue;
+            }
+            if ((currentLine.length + word.length) > width) {
+                // Next line
+                lines.push(currentLine.trimEnd());
+                splitWordIfTooLong(word);
+                continue;
+            }
+            currentLine += word;
             continue;
         }
-        currentLine += ' ' + word;
+
+        currentLine += char;
+        if (currentLine.length >= width) {
+            lines.push(currentLine.trimEnd());
+            currentLine = '';
+            // Skip whitespace at end of line.
+            while (isWhitespace(text[i + 1])) {
+                i++;
+            }
+            continue;
+        }
     }
-    lines.push(currentLine);
+    if (currentLine.length >= 0) {
+        lines.push(currentLine);
+    }
 
     return lines;
 };
