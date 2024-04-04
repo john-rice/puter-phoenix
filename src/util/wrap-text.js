@@ -16,7 +16,29 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-// TODO: Detect ANSI escape sequences in the text and treat them as 0 width?
+export function lengthIgnoringEscapes(text) {
+    const escape = '\x1b';
+    // There are a lot of different ones, but we only use graphics-mode ones, so only parse those for now.
+    // TODO: Parse other escape sequences as needed.
+    // Format is: ESC, '[', DIGIT, 0 or more characters, and then 'm'
+    const escapeSequenceRegex = /^\x1B\[\d.*?m/;
+
+    let length = 0;
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === escape) {
+            // Consume an ANSI escape sequence
+            const match = text.substring(i).match(escapeSequenceRegex);
+            if (match) {
+                i += match[0].length - 1;
+            }
+            continue;
+        }
+        length++;
+    }
+    return length;
+}
+
 // TODO: Ensure this works with multi-byte characters (UTF-8)
 export const wrapText = (text, width) => {
     const whitespaceChars = ' \t'.split('');
@@ -31,7 +53,7 @@ export const wrapText = (text, width) => {
     const lines = [];
     let currentLine = '';
     const splitWordIfTooLong = (word) => {
-        while (word.length > width) {
+        while (lengthIgnoringEscapes(word) > width) {
             lines.push(word.substring(0, width - 1) + '-');
             word = word.substring(width - 1);
         }
@@ -56,11 +78,11 @@ export const wrapText = (text, width) => {
                 word += text[i+1];
                 i++;
             }
-            if (currentLine.length === 0) {
+            if (lengthIgnoringEscapes(currentLine) === 0) {
                 splitWordIfTooLong(word);
                 continue;
             }
-            if ((currentLine.length + word.length) > width) {
+            if ((lengthIgnoringEscapes(currentLine) + lengthIgnoringEscapes(word)) > width) {
                 // Next line
                 lines.push(currentLine.trimEnd());
                 splitWordIfTooLong(word);
@@ -71,7 +93,7 @@ export const wrapText = (text, width) => {
         }
 
         currentLine += char;
-        if (currentLine.length >= width) {
+        if (lengthIgnoringEscapes(currentLine) >= width) {
             lines.push(currentLine.trimEnd());
             currentLine = '';
             // Skip whitespace at end of line.
@@ -81,7 +103,7 @@ export const wrapText = (text, width) => {
             continue;
         }
     }
-    if (currentLine.length >= 0) {
+    if (currentLine.length >= 0) { // Not lengthIgnoringEscapes!
         lines.push(currentLine);
     }
 
