@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import assert from 'assert';
-import { wrapText } from '../src/util/wrap-text.js';
+import { lengthIgnoringEscapes, wrapText } from '../src/util/wrap-text.js';
 
 describe('wrapText', () => {
     const testCases = [
@@ -51,19 +51,34 @@ describe('wrapText', () => {
             width: 0,
             output: ['Well, hello friends!'],
         },
+        {
+            description: 'should maintain existing newlines',
+            input: 'Well\nhello\n\nfriends!',
+            width: 20,
+            output: ['Well', 'hello', '', 'friends!'],
+        },
+        {
+            description: 'should maintain indentation after newlines',
+            input: 'Well\n      hello\n\nfriends!',
+            width: 20,
+            output: ['Well', '      hello', '', 'friends!'],
+        },
+        {
+            description: 'should ignore ansi escape sequences',
+            input: '\x1B[34;1mWell this is some text with ansi escape sequences\x1B[0m',
+            width: 20,
+            output: ['\x1B[34;1mWell this is some', 'text with ansi', 'escape sequences\x1B[0m'],
+        },
     ];
     for (const { description, input, width, output } of testCases) {
         it (description, () => {
             const result = wrapText(input, width);
             for (const line of result) {
                 if (typeof width === 'number' && width > 0) {
-                    assert.ok(line.length <= width, `Line is too long: '${line}`);
+                    assert.ok(lengthIgnoringEscapes(line) <= width, `Line is too long: '${line}'`);
                 }
             }
-            assert.equal(result.length, output.length, 'Wrong number of lines');
-            for (const i in result) {
-                assert.equal(result[i], output[i], `Line ${i} doesn't match: expected '${output[i]}', got '${result[i]}'`);
-            }
+            assert.equal('|' + result.join('|\n|') + '|', '|' + output.join('|\n|') + '|');
         });
     }
 })

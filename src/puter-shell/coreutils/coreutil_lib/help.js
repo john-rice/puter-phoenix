@@ -41,6 +41,9 @@ export const printUsage = async (command, out, vars) => {
     const colorOptionArgument = text => {
         return `\x1B[91m${text}\x1B[0m`;
     };
+    const wrap = text => {
+        return wrapText(text, vars.size.cols).join('\n') + '\n';
+    }
 
     await heading('Usage');
     if (!usage) {
@@ -62,10 +65,7 @@ export const printUsage = async (command, out, vars) => {
     }
 
     if (description) {
-        const wrappedLines = wrapText(description, vars.size.cols);
-        for (const line of wrappedLines) {
-            await out.write(`${line}\n`);
-        }
+        await out.write(wrap(description));
         await out.write(`\n`);
     }
 
@@ -127,8 +127,7 @@ export const printUsage = async (command, out, vars) => {
     if (helpSections) {
         for (const [title, contents] of Object.entries(helpSections)) {
             await heading(title);
-            // FIXME: Wrap the text nicely.
-            await out.write(contents);
+            await out.write(wrap(contents));
             await out.write('\n\n');
         }
     }

@@ -16,20 +16,44 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-// TODO: Detect ANSI escape sequences in the text and treat them as 0 width?
+export function lengthIgnoringEscapes(text) {
+    const escape = '\x1b';
+    // There are a lot of different ones, but we only use graphics-mode ones, so only parse those for now.
+    // TODO: Parse other escape sequences as needed.
+    // Format is: ESC, '[', DIGIT, 0 or more characters, and then 'm'
+    const escapeSequenceRegex = /^\x1B\[\d.*?m/;
+
+    let length = 0;
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === escape) {
+            // Consume an ANSI escape sequence
+            const match = text.substring(i).match(escapeSequenceRegex);
+            if (match) {
+                i += match[0].length - 1;
+            }
+            continue;
+        }
+        length++;
+    }
+    return length;
+}
+
 // TODO: Ensure this works with multi-byte characters (UTF-8)
 export const wrapText = (text, width) => {
+    const whitespaceChars = ' \t'.split('');
+    const isWhitespace = c => {
+        return whitespaceChars.includes(c);
+    };
+
     // If width was invalid, just return the original text as a failsafe.
     if (typeof width !== 'number' || width < 1)
         return [text];
 
     const lines = [];
-    // This reduces all whitespace to single space characters. Is that a problem?
-    const words = text.split(/\s+/);
-
     let currentLine = '';
     const splitWordIfTooLong = (word) => {
-        while (word.length > width) {
+        while (lengthIgnoringEscapes(word) > width) {
             lines.push(word.substring(0, width - 1) + '-');
             word = word.substring(width - 1);
         }
@@ -37,20 +61,51 @@ export const wrapText = (text, width) => {
         currentLine = word;
     };
 
-    for (let word of words) {
-        if (currentLine.length === 0) {
-            splitWordIfTooLong(word);
+    for (let i = 0; i < text.length; i++) {
+        const char = text.charAt(i);
+        // Handle special characters
+        if (char === '\n') {
+            lines.push(currentLine.trimEnd());
+            currentLine = '';
+            // Don't skip whitespace after a newline, to allow for indentation.
             continue;
         }
-        if ((currentLine.length + 1 + word.length) > width) {
-            // Next line
-            lines.push(currentLine);
-            splitWordIfTooLong(word);
+        // TODO: Handle \t?
+        if (/\S/.test(char)) {
+            // Grab next word
+            let word = char;
+            while ((i+1) < text.length && /\S/.test(text[i + 1])) {
+                word += text[i+1];
+                i++;
+            }
+            if (lengthIgnoringEscapes(currentLine) === 0) {
+                splitWordIfTooLong(word);
+                continue;
+            }
+            if ((lengthIgnoringEscapes(currentLine) + lengthIgnoringEscapes(word)) > width) {
+                // Next line
+                lines.push(currentLine.trimEnd());
+                splitWordIfTooLong(word);
+                continue;
+            }
+            currentLine += word;
             continue;
         }
-        currentLine += ' ' + word;
+
+        currentLine += char;
+        if (lengthIgnoringEscapes(currentLine) >= width) {
+            lines.push(currentLine.trimEnd());
+            currentLine = '';
+            // Skip whitespace at end of line.
+            while (isWhitespace(text[i + 1])) {
+                i++;
+            }
+            continue;
+        }
     }
-    lines.push(currentLine);
+    if (currentLine.length >= 0) { // Not lengthIgnoringEscapes!
+        lines.push(currentLine);
+    }
 
     return lines;
 };
