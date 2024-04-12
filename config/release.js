@@ -18,5 +18,6 @@
  */
 globalThis.__CONFIG__ = {
     origin: location.origin,
-    'shell.href': location.origin + '/puter-shell/'
+    'shell.href': location.origin + '/puter-shell/',
+    sdk_url: 'https://puter.com/puter.js/v2',
 };

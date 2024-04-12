@@ -18,5 +18,6 @@
  */
 globalThis.__CONFIG__ = {
     "origin": "https://puter.local:8080",
-    "shell.href": "https://puter.local:8081"
+    "shell.href": "https://puter.local:8081",
+    "sdk_url": "http://puter.localhost:4100/sdk/puter.js",
 };

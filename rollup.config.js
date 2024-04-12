@@ -21,6 +21,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import copy from 'rollup-plugin-copy';
 
 const configFile = process.env.CONFIG_FILE ?? 'config/dev.js';
+await import(`./${configFile}`);
 
 export default {
     input: "src/main_puter.js",
@@ -33,7 +34,13 @@ export default {
         commonjs(),
         copy({
             targets: [
-                { src: 'assets/index.html', dest: 'dist' },
+                {
+                    src: 'assets/index.html',
+                    dest: 'dist',
+                    transform: (contents, name) => {
+                        return contents.toString().replace('__SDK_URL__', globalThis.__CONFIG__.sdk_url);
+                    }
+                },
                 { src: 'assets/shell.html', dest: 'dist' },
                 { src: 'assets/normalize.css', dest: 'dist' },
                 { src: 'assets/style.css', dest: 'dist' },
