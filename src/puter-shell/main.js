@@ -28,7 +28,6 @@ import { Context } from "contextlink";
 import { SHELL_VERSIONS } from "../meta/versions.js";
 import { PuterShellParser } from "../ansi-shell/parsing/PuterShellParser.js";
 import { BuiltinCommandProvider } from "./providers/BuiltinCommandProvider.js";
-import { PathCommandProvider } from "./providers/PathCommandProvider.js";
 import { CreateChatHistoryPlugin } from './plugins/ChatHistoryPlugin.js';
 import { Pipe } from '../ansi-shell/pipeline/Pipe.js';
 import { Coupler } from '../ansi-shell/pipeline/Coupler.js';
@@ -83,10 +82,15 @@ export const launchPuterShell = async (ctx) => {
         await sdkv2.setAPIOrigin(source_without_trailing_slash);
     }
 
+    // PathCommandProvider is only compatible with node.js for now
+    // HACK: The import path is split to fool rollup into not including it.
+    const { PathCommandProvider } = (ctx.platform.name === 'node')
+        ? await import('./providers/' + 'PathCommandProvider.js')
+        : { PathCommandProvider: null };
+
     const commandProvider = new CompositeCommandProvider([
         new BuiltinCommandProvider(),
-        // PathCommandProvider is only compatible with node.js for now
-        ...(ctx.platform.name === 'node' ? [new PathCommandProvider()] : []),
+        ...(PathCommandProvider ? [new PathCommandProvider()] : []),
         new ScriptCommandProvider(),
     ]);
 
