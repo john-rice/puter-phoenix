@@ -1,6 +1,6 @@
 # Important notice
 
-This repository is being moved to [the monorepo](https://github.com/HeyPuter/puter).
+This repository has been moved to [the monorepo](https://github.com/HeyPuter/puter/tree/main/packages/phoenix).
 
 <hr />
 
